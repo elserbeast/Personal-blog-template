@@ -1,0 +1,96 @@
+---
+import { getEntry } from "astro:content";
+import Main from "../layouts/MainLayout.astro";
+import Markdown from "../components/Markdown.astro";
+import CopyRight from "../components/misc/CopyRight.astro";
+
+// 获取数据库文档
+const aboutPost = await getEntry("posts", "about");
+
+const contentmd = aboutPost.data.body;
+
+const renderMarkdown = (markdown) => {
+
+    markdown = markdown.replace(/^# (.*$)/gm, '<h1>$1</h1>')
+        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+        .replace(/^### (.*$)/gm, '<h3>$1</h3>');
+
+    markdown = markdown.replace(/^(?!<h[1-6]|<ul|<ol|<li|<blockquote|<pre|<table|<tr|<td|<th)(.*)$/gm, '<p>$1</p>');
+
+    markdown = markdown.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/_(.*?)_/g, '<em>$1</em>');
+
+    markdown = markdown.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+        .replace(/`(.*?)`/g, '<code>$1</code>');
+
+
+    markdown = markdown.replace(/^- (.*$)/gm, '<li>$1</li>');
+    markdown = markdown.replace(/^1\. (.*$)/gm, '<li>$1</li>');
+    markdown = markdown.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+
+    markdown = markdown.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+
+
+    markdown = markdown.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+
+
+    markdown = markdown.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
+
+    markdown = markdown.replace(/^---$/gm, '<hr>');
+
+    markdown = markdown.replace(/^(\|.*\|)$/gm, (match) => {
+        const rows = match.split('\n').filter(row => row.trim());
+        if (rows.length < 2) return match;
+
+        let table = '<table>';
+        rows.forEach((row, index) => {
+            const cells = row.split('|').filter(cell => cell.trim());
+            if (index === 0) {
+                table += '<thead><tr>';
+                cells.forEach(cell => table += `<th>${cell.trim()}</th>`);
+                table += '</tr></thead><tbody>';
+            } else if (index === 1 && cells[0].includes('---')) {
+                // 跳过表头分隔行
+            } else {
+                table += '<tr>';
+                cells.forEach(cell => table += `<td>${cell.trim()}</td>`);
+                table += '</tr>';
+            }
+        });
+        table += '</tbody></table>';
+        return table;
+    });
+    return markdown;
+};
+
+
+const produced_md = renderMarkdown(contentmd);
+
+const {
+  data :{
+    title = "未命名文档",
+    subTitle = "",
+    bannerImage = "https://s2.loli.net/2025/01/25/6bKcwHZigzlM4mJ.webp",
+    published,
+    content = aboutPost.data.body.trim()
+  },
+} = aboutPost || {};
+
+---
+
+<Main title={title} subTitle={subTitle} bannerImage={bannerImage}>
+  <div class="article-wrapper">
+    <div class="article">
+   <Markdown>
+       <div set:html={produced_md}></div>
+   </Markdown>
+      {published && title && (
+          <CopyRight
+              title={title}
+              published={published}
+          />
+      )}
+    </div>
+  </div>
+</Main>

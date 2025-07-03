@@ -1,0 +1,129 @@
+---
+import { getCollection } from "astro:content";
+import { IdToSlug } from "../../utils/hash";
+import PostLayout from "../../layouts/PostLayout.astro";
+import { render } from "astro:content";
+
+export async function getStaticPaths() {
+    const postEntries = await getCollection("posts");
+    return postEntries.map((entry) => ({
+        params: { slug: IdToSlug(entry.id) },
+        props: { entry },
+    }));
+}
+
+const { entry } = Astro.props;
+// -----
+
+const contentmd = entry.data.body;
+
+const renderMarkdown = (markdown) => {
+
+    markdown = markdown.replace(/^# (.*$)/gm, '<h1>$1</h1>')
+        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+        .replace(/^### (.*$)/gm, '<h3>$1</h3>');
+
+    markdown = markdown.replace(/^(?!<h[1-6]|<ul|<ol|<li|<blockquote|<pre|<table|<tr|<td|<th)(.*)$/gm, '<p>$1</p>');
+
+    markdown = markdown.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/_(.*?)_/g, '<em>$1</em>');
+
+    markdown = markdown.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+        .replace(/`(.*?)`/g, '<code>$1</code>');
+
+    markdown = markdown.replace(/^- (.*$)/gm, '<li>$1</li>');
+    markdown = markdown.replace(/^1\. (.*$)/gm, '<li>$1</li>');
+    markdown = markdown.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+
+    markdown = markdown.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+
+
+    markdown = markdown.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+
+
+    markdown = markdown.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
+
+    markdown = markdown.replace(/^---$/gm, '<hr>');
+
+    markdown = markdown.replace(/^(\|.*\|)$/gm, (match) => {
+        const rows = match.split('\n').filter(row => row.trim());
+        if (rows.length < 2) return match;
+
+        let table = '<table>';
+        rows.forEach((row, index) => {
+            const cells = row.split('|').filter(cell => cell.trim());
+            if (index === 0) {
+                table += '<thead><tr>';
+                cells.forEach(cell => table += `<th>${cell.trim()}</th>`);
+                table += '</tr></thead><tbody>';
+            } else if (index === 1 && cells[0].includes('---')) {
+                // 跳过表头分隔行
+            } else {
+                table += '<tr>';
+                cells.forEach(cell => table += `<td>${cell.trim()}</td>`);
+                table += '</tr>';
+            }
+        });
+        table += '</tbody></table>';
+        return table;
+    });
+    return markdown;
+};
+// 我服了
+
+const produced_md = renderMarkdown(contentmd);
+const { Content, headings } = await render(entry);
+---
+<PostLayout
+        title={entry.data.title}
+        subTitle={entry.data.description}
+        bannerImage={entry.data.cover}
+        published={entry.data.published}
+        license={entry.data.licenseName ? {
+            name: entry.data.licenseName,
+            url: entry.data.licenseUrl
+        } : undefined}
+        author={entry.data.author}
+        sourceLink={entry.data.sourceLink}
+>
+    <div
+            class="hidden"
+            data-pagefind-body
+            data-pagefind-weight="10"
+            data-pagefind-meta="title"
+    >
+        {entry.data.title}
+    </div>
+
+    <div class="markdown-content" data-pagefind-body>
+        <div set:html={produced_md}></div>
+    </div>
+</PostLayout>
+
+<style>
+    /* 增强Markdown样式 */
+    .markdown-content h1 {
+        font-size: 2rem;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .markdown-content pre {
+        background: #f8f8f8;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+    }
+
+    .markdown-content table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .markdown-content th, .markdown-content td {
+        border: 1px solid #ddd;
+        padding: 0.75rem;
+        text-align: left;
+    }
+</style>

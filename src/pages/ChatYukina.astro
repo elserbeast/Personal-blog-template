@@ -1,0 +1,606 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+
+---
+<MainLayout title="ゆきにゃんの魔法AI柚子酱">
+
+
+    <div class="ai-container">
+        <div class="ai-header">
+            <div class="ai-icon">
+
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FF4B91">
+                    <path d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M10,17l-5-5l1.4-1.4l3.6,3.6l7.6-7.6L19,8L10,17z"/>
+                </svg>
+            </div>
+
+            <div class="ai-info">
+                <h1 class="ai-title">ゆきにゃんの魔法AI</h1>
+                <p class="ai-subtitle">ハピネスをお届け！✨ 一緒に冒険しましょう！</p>
+            </div>
+        </div>
+
+        <!-- 樱花飘落效果 -->
+        <div class="sakura-container"></div>
+
+        <div class="chat-container" id="chat-container">
+
+
+        </div>
+
+        <div class="typing-indicator" id="typing-indicator">
+            考え中です <span>•</span><span>•</span><span>•</span>
+        </div>
+
+        <div class="input-container">
+            <input
+                    id="message-input"
+                    placeholder="ゆきにゃんに何か聞いてみてね..."
+            ></input>
+            <button id="send-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="ai-footer">
+            <p>わくわくするインターネットを一緒に作りましょう！✨</p>
+        </div>
+    </div>
+
+    <style is:global>
+        input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 1px solid #FFC2D8;
+            border-radius: 25px;
+            font-size: 1rem;
+            resize: none;
+            max-height: 120px;
+            outline: none;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.9);
+            color: #7A3D6E;
+        }
+        :root {
+            -ms-overflow-style: none;
+            --pink-primary: oklch(97% 0.01 var(--hue));
+            --pink-secondary: #FFC2D8;
+            --pink-tertiary:oklch(100% 0 0 / 85%);
+            --purple-accent: #D9A7FF;
+            --yellow-accent: #FFEB99;
+            --pink-dark: oklch(97% 0.01 var(--hue));
+        }
+
+        * {
+            -ms-overflow-style: none;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            -ms-overflow-style: none;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            //background: linear-gradient(135deg, var(--pink-primary) 0%, var(--purple-accent) 100%);
+            //color: #7A3D6E;
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 樱花飘落效果 */
+        .sakura {
+            position: absolute;
+            top: -50px;
+            z-index: 0;
+            animation: fall linear forwards;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 24px;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(calc(100vh + 50px)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .ai-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 900px;
+            height: 85vh;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(255, 158, 197, 0.3);
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #FFB7D5 0%, var(--pink-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(214, 103, 205, 0.2);
+            position: relative;
+            z-index: 20;
+        }
+
+        .ai-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath fill='rgba(255,255,255,0.2)' d='M29.18 22.09c-2.08-5.68-.54-12.38 4.32-16.23 4.86-3.85 11.53-3.7 16.13.4 4.6 4.1 5.76 10.67 3.17 16.05-2.6 5.38-8.14 8.2-13.74 7.34-5.6-.86-10.3-4.96-9.88-7.56zm-3.99 15.11c-4.67 2.57-7.7 7.2-7.72 12.15-.02 4.96 3.13 9.63 7.8 12.33 4.67 2.7 10.44 2.94 15.32.84 4.88-2.1 8.47-6.38 9.88-11.42 1.4-5.04.37-10.43-2.88-14.51-3.25-4.08-8.4-6.34-13.54-6.34-5.13 0-8.78 3.85-8.86 5.75z'/%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        .ai-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            margin-right: 16px;
+            z-index: 2;
+        }
+
+        .ai-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .ai-info {
+            flex: 1;
+            z-index: 2;
+        }
+
+        .ai-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .ai-subtitle {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background-color: rgba(255, 242, 248, 0.5);
+            z-index: 5;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 16px;
+            border-radius: 20px;
+            position: relative;
+            animation: fadeIn 0.4s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            line-height: 1.5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, var(--yellow-accent) 0%, #FFC5EB 100%);
+            border-bottom-right-radius: 5px;
+            align-self: flex-end;
+            color: #7A3D6E;
+        }
+
+        .ai-message {
+            background: linear-gradient(135deg, var(--pink-secondary) 0%, #FFD5F5 100%);
+            border-bottom-left-radius: 5px;
+            align-self: flex-start;
+            color: #7A3D6E;
+        }
+        /* 隐藏默认滚动条并创建自定义样式 */
+        .chat-container {
+            overflow-y: hidden; /* 使用更和谐的滚动条渲染方式 */
+            scrollbar-width: thin; /* Firefox支持 */
+            scrollbar-color: #ffb7d5 rgba(255, 242, 248, 0.5); /* 滚动条配色 */
+        }
+
+        /* WebKit浏览器自定义滚动条 */
+        .chat-container::-webkit-scrollbar {
+            width: 6px; /* 窄条设计 */
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: transparent; /* 透明轨道 */
+            border-radius: 3px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #ffb7d5; /* 粉色滑块 */
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #ff80ab; /* 悬停时颜色变深 */
+            width: 8px;
+        }
+
+        /* 优化滚动条触发区域 */
+        .chat-container::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 15px; /* 更宽的触发区域 */
+            pointer-events: none; /* 不影响内容交互 */
+        }
+
+        /* 调整输入框避免溢出 */
+        .input-container {
+            position: relative;
+            z-index: 20; /* 确保在樱花上方 */
+        }
+
+        /* 确保樱花效果不会干扰滚动 */
+        .sakura {
+            pointer-events: none; /* 防止樱花干扰滚动区域 */
+            z-index: 0;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            text-align: right;
+            margin-top: 8px;
+            opacity: 0.7;
+        }
+
+        /* 打字指示器 */
+        .typing-indicator {
+            background: var(--pink-tertiary);
+            border-radius: 20px;
+            padding: 12px 20px;
+            width: fit-content;
+            margin: 0 20px 10px;
+            color: var(--pink-dark);
+            font-style: italic;
+            display: none;
+            z-index: 10;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--purple-accent);
+            border-radius: 50%;
+            margin: 0 2px;
+            opacity: 0.4;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); opacity: 0.4; }
+            50% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .input-container {
+            display: flex;
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255, 192, 216, 0.5);
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 10;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 14px 20px;
+            border: 1px solid #FFC2D8;
+            border-radius: 25px;
+            font-size: 1rem;
+            resize: none;
+            max-height: 120px;
+            outline: none;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.9);
+            color: #7A3D6E;
+        }
+
+        textarea::placeholder {
+            color: #D9A7FF;
+        }
+
+        textarea:focus {
+            border-color: #D9A7FF;
+            box-shadow: 0 0 0 3px rgba(217, 167, 255, 0.3);
+        }
+
+        .input-container  >button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #FF80AB 0%, var(--pink-dark) 100%);
+            color: white;
+            margin-left: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(214, 103, 205, 0.3);
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 7px 20px rgba(214, 103, 205, 0.4);
+        }
+
+        button svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .ai-footer {
+            padding: 12px 24px;
+            background: rgba(255, 228, 241, 0.7);
+            text-align: center;
+            font-size: 0.85rem;
+            color: #b95ea3;
+            border-top: 1px solid rgba(255, 192, 216, 0.5);
+            z-index: 10;
+        }
+
+        .ai-footer p {
+            margin: 4px 0;
+        }
+
+        @media (max-width: 768px) {
+            .ai-container {
+                height: 100vh;
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .ai-header {
+                padding: 12px;
+            }
+
+            .message {
+                max-width: 90%;
+                padding: 12px 16px;
+            }
+
+            .input-container {
+                padding: 12px;
+            }
+
+            textarea {
+                padding: 12px 16px;
+            }
+
+            button {
+                width: 45px;
+                height: 45px;
+            }
+        }
+    </style>
+       <script type="text/javascript">
+
+
+           const chatContainer = document.getElementById('chat-container');
+           const messageInput = document.getElementById('message-input');
+           const sendButton = document.getElementById('send-button');
+           const typingIndicator = document.getElementById('typing-indicator');
+
+           let ws = null;
+           let sessionId = null;
+           let currentAiMessage = null;
+           window.addEventListener('load', () => {
+               // 连接后端WebSocket服务器
+               function connect() {
+                   ws = new WebSocket('ws://localhost:8080');
+                   ws.onopen = () => {
+                       console.log('已连接到后端服务器');
+                   };
+                   ws.onmessage = (event) => {
+                       try {
+                           const data = JSON.parse(event.data);
+
+                           switch (data.event) {
+                               case 'session_created':
+                                   appendMessage('ai', "Ciallo～(∠・ω< )⌒☆" ); // 2
+                                   break;
+
+                               case 'text_update':
+                                   // 处理文本更新
+                                   handleTextUpdate(data.text, data.complete);
+                                   break;
+
+                               default:
+                                   console.log('未知事件类型:', data);
+                           }
+                       } catch (error) {
+                           console.error('解析消息错误:', error);
+                       }
+                   };
+
+                   ws.onclose = () => {
+                       console.log('连接已关闭');
+                       appendMessage('ai', 'サーバーとの接続が切断されました。再接続中...');
+                       setTimeout(connect, 3000);
+                   };
+
+                   ws.onerror = (error) => {
+                       console.error('WebSocket错误:', error);
+                       appendMessage('ai', `通信エラー: ${error.message || '不明なエラー'}`);
+                   };
+               }
+               connect();
+           })
+           
+
+
+           // 处理文本更新
+           function handleTextUpdate(text, complete) {
+               if (!currentAiMessage) {
+                   // 创建新消息
+                   currentAiMessage = appendMessage('ai', text);
+               } else {
+                   // 追加到现有消息
+                   const contentEl = currentAiMessage.querySelector('.message-content');
+                   contentEl.textContent += text;
+               }
+
+               // 滚动到底部
+               chatContainer.scrollTop = chatContainer.scrollHeight;
+
+               // 更新打字指示器
+               if (complete) {
+                   typingIndicator.style.display = 'none';
+                   currentAiMessage = null;
+               } else {
+                   typingIndicator.style.display = 'flex';
+               }
+           }
+
+           // 添加消息到聊天窗口
+           function appendMessage(sender, text) {
+               const timestamp = Date.now();
+               const messageElement = document.createElement('div');
+               messageElement.classList.add('message', `${sender}-message`);
+               messageElement.innerHTML = `
+                <div class="message-content">${text}</div>
+                <div class="message-time">
+                    ${new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+            `;
+               chatContainer.appendChild(messageElement);
+               return messageElement;
+           }
+
+ 
+           function sendUserMessage() {
+               const text = messageInput.value.trim(); // 使用.
+
+               console.log(text)
+               if (!text) return;
+
+               appendMessage('user', text);
+
+               messageInput.value = ''; // 清空输入框
+
+
+               typingIndicator.style.display = 'flex';
+
+
+               currentAiMessage = appendMessage('ai', '');
+
+               if (ws && ws.readyState === WebSocket.OPEN) {
+                   // 直接发送纯文本消息
+                   ws.send(text);
+               } else {
+                   appendMessage('ai', '接続を確立中...');
+               }
+           }
+
+           function adjustTextareaHeight() {
+               messageInput.style.height = 'auto';
+               messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+           }
+
+           sendButton.addEventListener('click', sendUserMessage);
+           messageInput.addEventListener('input', adjustTextareaHeight);
+           messageInput.addEventListener('keydown', (e) => {
+               if (e.key === 'Enter' && !e.shiftKey) {
+                   e.preventDefault();
+                   sendUserMessage();
+               }
+           });
+
+
+           document.addEventListener('DOMContentLoaded', () => {
+            function createSakura() {
+                const container = document.querySelector('.sakura-container');
+                if (!container) return;
+
+                const sakura = document.createElement('div');
+                sakura.classList.add('sakura');
+                sakura.innerHTML = '🌸';  // 樱花符号
+
+                // 随机位置
+                sakura.style.left = Math.random() * 100 + 'vw';
+
+                // 随机大小
+                const size = Math.random() * 20 + 10;
+                sakura.style.fontSize = size + 'px';
+
+                // 随机动画时间
+                const duration = Math.random() * 5 + 5;
+                sakura.style.animationDuration = duration + 's';
+
+                // 随机透明度
+                const opacity = Math.random() * 0.5 + 0.3;
+                sakura.style.opacity = String(opacity);
+
+                // 随机旋转角度
+                const rotation = Math.random() * 90 - 45;
+                sakura.style.transform = `rotate(${rotation}deg)`;
+
+                container.appendChild(sakura);
+
+                // 动画结束后移除元素
+                setTimeout(() => {
+                    if (sakura.parentNode === container) {
+                        container.removeChild(sakura);
+                    }
+                }, duration * 1000);
+            }
+
+            // 创建初始樱花
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    createSakura();
+                }, i * 300);
+            }
+
+            // 定期创建新的樱花
+            setInterval(createSakura, 800);
+
+        });
+
+    </script>
+</MainLayout>

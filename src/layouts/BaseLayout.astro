@@ -1,0 +1,18 @@
+---
+import YukinaConfig from "../../yukina.config";
+import BaseHead from "../components/BaseHead.astro";
+---
+
+<html lang={YukinaConfig.locale}>
+  <BaseHead />
+  <body class="overflow-y-hidden">
+    <slot />
+  </body>
+</html>
+
+<style>
+  body {
+    /* 更浓的樱花粉渐变背景 */
+    background: linear-gradient(135deg, #ffb7d5 0%, #ffe6f3 60%, #fff6fb 100%);
+  }
+</style>
